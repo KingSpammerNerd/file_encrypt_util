@@ -14,30 +14,30 @@ import java.util.*;
 //Encryption helper class:
 class EncHelper {
 	//File input stream:
-	BufferedReader file_in=null;
+	private BufferedReader file_in=null;
 	//Encrypted file output streams:
-	BufferedWriter file_out=null;
+	private BufferedWriter file_out=null;
 	//Base64 encoded contents of encrypted file:
-	String enc64=null;
+	private String enc64=null;
 	//MessageDigest for hashing:
-	MessageDigest hasher256=null;
+	private MessageDigest hasher256=null;
 	//Base64 encoded SHA-256 hash of original file:
-	String hashed64=null;
+	private String hashed64=null;
 	//Base64 encoder:
-	Base64.Encoder b64_enc=null;
+	private Base64.Encoder b64_enc=null;
 	//File name:
-	String orig_file_name=null;
+	private String orig_file_name=null;
 	//Initialization Vector:
-	String IV64=null;
+	private String IV64=null;
 	
 	//Supplied encryption key:
-	String passwd=null;
+	private String passwd=null;
 	
 	//Original file contents:
-	String orig_file_contents=null;
+	private String orig_file_contents=null;
 	
 	//Target file contents:
-	String target_file_contents=null;
+	private String target_file_contents=null;
 	
 	//Constructor, takes a file name and an encryption key:
 	public EncHelper(String orig_file_name, String passkey) throws IOException {
