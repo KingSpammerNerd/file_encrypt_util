@@ -25,8 +25,10 @@ class EncHelper {
 	private String hashed64=null;
 	//Base64 encoder:
 	private Base64.Encoder b64_enc=null;
-	//File name:
+	//Input file name:
 	private String orig_file_name=null;
+	//Target file name:
+	private String target_file_name=null;
 	//Initialization Vector:
 	private String IV64=null;
 	
@@ -39,10 +41,11 @@ class EncHelper {
 	//Target file contents:
 	private String target_file_contents=null;
 	
-	//Constructor, takes a file name and an encryption key:
-	public EncHelper(String orig_file_name, String passkey) throws IOException {
-		//Save filename:
+	//Constructor, takes a file name, target file name and an encryption key:
+	public EncHelper(String orig_file_name, String target_file_name, String passkey) throws IOException {
+		//Save filenames:
 		this.orig_file_name=orig_file_name;
+		this.target_file_name=target_file_name;
 		//Open input stream:
 		this.file_in=new BufferedReader(new FileReader(orig_file_name));
 		//Save password:
@@ -97,7 +100,7 @@ class EncHelper {
 	//Function to write and verify the output file (returns true if file is "good", else returns false. Should NEVER return false during normal usage):
 	public boolean writeOutput() throws IOException {
 		//Open output file:
-		File out=new File(this.orig_file_name + ".fenc");
+		File out=new File(this.target_file_name);
 		//Throw exception if file exists. The program should prompt the user at this point:
 		if(out.exists()) throw new IOException("OUT_FILE_EXISTS");
 		//Open the file:
