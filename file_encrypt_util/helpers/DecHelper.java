@@ -1,4 +1,4 @@
-package file_encrypt_helper.helpers;
+package file_encrypt_util.helpers;
 
 //Helper class to implement file decryption.
 import java.io.*;
@@ -8,18 +8,118 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.util.*;
 
-//Requires: An input stream, output stream, Cipher, MessageDigest, Base64 decoder, File (for directory name)
+//Requires: An input stream, output stream, Cipher, MessageDigest, Base64 decoder
 
 //Decryption helper class:
 class DecHelper {
 	//File input streams:
-	BufferedReader file_in=null;
-	BufferedReader hash_in=null;
+	private BufferedReader file_in=null;
 	//File output stream:
-	BufferedWriter file_out=null;
-	//Cipher for decryption:
-	Cipher decryptor=null;
+	private BufferedWriter file_out=null;
 	//Base64 decoder:
-	Base64.Decoder=null;
+	private Base64.Decoder b64_dec=null;
+	//MessageDigest, for hashing:
+	private MessageDigest hasher256=null;
+	//Encryption key:
+	private String passwd=null;
 	
+	//Original file name:
+	private String orig_file_name=null;
+	//Target file name:
+	private String target_file_name=null;
+	
+	//Original file contents:
+	//Initialization Vector;
+	private String IV64=null;
+	//Encrypted contents:
+	private String enc64=null;
+	//SHA-256 hash of original file contents (Base64-encoded):
+	private String hash64=null;
+	
+	//Decrypted contents:
+	private String dec=null;
+	
+	//Constructor, takes the original file name, target file name and the decryption key:
+	public DecHelper(String orig_file_name, String target_file_name, String passkey) throws IOException {
+		//Save filenames:
+		this.orig_file_name=orig_file_name;
+		this.target_file_name=target_file_name;
+		//Open input stream:
+		this.file_in=new BufferedReader(new FileReader(orig_file_name));
+		//Save password:
+		this.passwd=passkey;
+		//Create Base64 encoder:
+		this.b64_dec=Base64.getDecoder();
+	}
+	
+	//Function to read and store input file's contents:
+	public void readInput() throws IOException {
+		//Read initialization vector:
+		this.IV64=this.file_in.readLine();
+		//Read Base64-encoded encrypted contents:
+		this.enc64=this.file_in.readLine();
+		//Read Base64-encoded hash of original contents:
+		this.hash64=this.file_in.readLine();
+	}
+	
+	//Decrypt file contents:
+	public void decryptInput() throws UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+		//Decode initialization vector:
+		byte[] iv=this.b64_dec.decode(this.IV64.getBytes("UTF-8"));
+		//Create IvParameterSpec:
+		IvParameterSpec IV=new IvParameterSpec(iv);
+		//Create SecretKeySpec:
+		SecretKeySpec key=new SecretKeySpec(this.passwd.getBytes("UTF-8"), "AES");
+		//Create Cipher:
+		Cipher decrypter=Cipher.getInstance("AES/CBC/PKCS5Padding");
+		//Initialize Cipher:
+		decrypter.init(Cipher.DECRYPT_MODE, key, IV);
+		//Decode and decrypt contents:
+		byte[] enc=this.b64_dec.decode(this.enc64.getBytes("UTF-8"));
+		byte[] decc=decrypter.doFinal(enc);
+		this.dec=new String(decc, "UTF-8");
+	}
+	
+	//Verify the decrypted contents:
+	public boolean verifyContents() throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		//Hash the newly decrypted contents:
+		this.hasher256=MessageDigest.getInstance("SHA-256");
+		byte[] hashed=hasher256.digest(this.dec.getBytes("UTF-8"));
+		String hash=Base64.getEncoder().encodeToString(hashed);
+		//Compare hashes and return result:
+		if(hash.equals(this.hash64))
+			return true;
+		else
+			return false;
+	}
+	
+	//Function to write and verify the output file (returns true if file is "good", else returns false. Should NEVER return false during normal usage):
+	public boolean writeOutput() throws IOException {
+		//Open output file:
+		File out=new File(this.target_file_name);
+		//Throw exception if file exists. The program should prompt the user at this point:
+		if(out.exists()) throw new IOException("OUT_FILE_EXISTS");
+		//Open the file:
+		this.file_out=new BufferedWriter(new FileWriter(out));
+		//Write data to the file:
+		this.file_out.write(this.dec);
+		this.file_out.flush();
+		//Re-read data from file:
+		BufferedReader check_reader=new BufferedReader(new FileReader(out));
+		String temp=null; StringBuilder checc=new StringBuilder();
+		while((temp=check_reader.readLine())!=null) {
+			checc.append(temp);
+			checc.append('\n');
+		}
+		checc.deleteCharAt(checc.length()-1);
+		String check=checc.toString();
+		//Hash re-read data:
+		byte[] posthash=this.hasher256.digest(check.getBytes("UTF-8"));
+		String posthash64=Base64.getEncoder().encodeToString(posthash);
+		//Check if hashes match:
+		if(this.hash64.equals(posthash64))
+			return true;
+		else
+			return false; //Once again, this should NEVER HAPPEN!
+	}
 }
