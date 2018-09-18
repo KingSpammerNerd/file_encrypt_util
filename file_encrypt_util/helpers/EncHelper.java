@@ -12,7 +12,7 @@ import java.util.*;
 //Methods: constructor, readfile, hashfile, encryptfile, writefile.
 
 //Encryption helper class:
-class EncHelper {
+public class EncHelper {
 	//File input stream:
 	private BufferedReader file_in=null;
 	//Encrypted file output streams:
@@ -42,16 +42,18 @@ class EncHelper {
 	private String target_file_contents=null;
 	
 	//Constructor, takes a file name, target file name and an encryption key:
-	public EncHelper(String orig_file_name, String target_file_name, String passkey) throws IOException {
+	public EncHelper(String orig_file_name, String target_file_name, String passkey) throws IOException, NoSuchAlgorithmException, UnsupportedEncodingException {
 		//Save filenames:
 		this.orig_file_name=orig_file_name;
 		this.target_file_name=target_file_name;
 		//Open input stream:
 		this.file_in=new BufferedReader(new FileReader(orig_file_name));
-		//Save password:
-		this.passwd=passkey;
+		//Initializa MessageDigest:
+		this.hasher256=MessageDigest.getInstance("SHA-256");
 		//Create Base64 encoder:
 		this.b64_enc=Base64.getEncoder();
+		//Save password:
+		this.passwd=new String(Arrays.copyOf(this.b64_enc.encode(this.hasher256.digest(passkey.getBytes("UTF-8"))), 16), "UTF-8");
 	}
 	
 	//Function to read and store input file's contents:
@@ -71,8 +73,6 @@ class EncHelper {
 	
 	//Function to hash the file:
 	public void hashInput() throws UnsupportedEncodingException, NoSuchAlgorithmException {
-		//Initialize MessageDigest:
-		this.hasher256=MessageDigest.getInstance("SHA-256");
 		//Hash and store:
 		byte[] hash64=this.hasher256.digest(this.orig_file_contents.getBytes("UTF-8"));
 		this.hashed64=this.b64_enc.encodeToString(hash64);
@@ -91,10 +91,11 @@ class EncHelper {
 		sr.nextBytes(iv);
 		encrypter.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
 		//Store Initialization Vector:
-		this.IV64=b64_enc.encodeToString(iv);
+		this.IV64=this.b64_enc.encodeToString(iv);
 		//Encrypt contents:
 		byte[] enc=encrypter.doFinal(this.orig_file_contents.getBytes("UTF-8"));
-		this.enc64=new String(enc, "UTF-8");
+		byte[] ence=this.b64_enc.encode(enc);
+		this.enc64=new String(ence, "UTF-8");
 	}
 	
 	//Function to write and verify the output file (returns true if file is "good", else returns false. Should NEVER return false during normal usage):
@@ -108,9 +109,9 @@ class EncHelper {
 		//Concatenate the data. First the Initialization vector (this.IV64), then the encrypted contents (this.enc64), finally the SHA-256 hash of the encrypted file (this.hashed64):
 		StringBuffer out_builder=new StringBuffer();
 		out_builder.append(this.IV64);
-		out_builder.append('\n');
+		out_builder.append(',');
 		out_builder.append(this.enc64);
-		out_builder.append('\n');
+		out_builder.append(',');
 		out_builder.append(this.hashed64);
 		this.target_file_contents=out_builder.toString();
 		//Hash the concatenated contents:
@@ -121,13 +122,7 @@ class EncHelper {
 		this.file_out.flush();
 		//Re-read data from file:
 		BufferedReader check_reader=new BufferedReader(new FileReader(out));
-		String temp=null; StringBuilder checc=new StringBuilder();
-		while((temp=check_reader.readLine())!=null) {
-			checc.append(temp);
-			checc.append('\n');
-		}
-		checc.deleteCharAt(checc.length()-1);
-		String check=checc.toString();
+		String check=check_reader.readLine();
 		//Hash re-read data:
 		byte[] posthash=this.hasher256.digest(check.getBytes("UTF-8"));
 		String posthash64=this.b64_enc.encodeToString(posthash);

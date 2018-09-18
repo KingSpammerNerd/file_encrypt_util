@@ -11,7 +11,7 @@ import java.util.*;
 //Requires: An input stream, output stream, Cipher, MessageDigest, Base64 decoder
 
 //Decryption helper class:
-class DecHelper {
+public class DecHelper {
 	//File input streams:
 	private BufferedReader file_in=null;
 	//File output stream:
@@ -40,26 +40,31 @@ class DecHelper {
 	private String dec=null;
 	
 	//Constructor, takes the original file name, target file name and the decryption key:
-	public DecHelper(String orig_file_name, String target_file_name, String passkey) throws IOException {
+	public DecHelper(String orig_file_name, String target_file_name, String passkey) throws IOException, NoSuchAlgorithmException, UnsupportedEncodingException {
 		//Save filenames:
 		this.orig_file_name=orig_file_name;
 		this.target_file_name=target_file_name;
 		//Open input stream:
 		this.file_in=new BufferedReader(new FileReader(orig_file_name));
-		//Save password:
-		this.passwd=passkey;
+		//Initialize MessageDigest:
+		this.hasher256=MessageDigest.getInstance("SHA-256");
 		//Create Base64 encoder:
 		this.b64_dec=Base64.getDecoder();
+		//Save password:
+		this.passwd=new String(Arrays.copyOf(Base64.getEncoder().encode(this.hasher256.digest(passkey.getBytes("UTF-8"))), 16), "UTF-8");
 	}
 	
 	//Function to read and store input file's contents:
 	public void readInput() throws IOException {
-		//Read initialization vector:
-		this.IV64=this.file_in.readLine();
-		//Read Base64-encoded encrypted contents:
-		this.enc64=this.file_in.readLine();
-		//Read Base64-encoded hash of original contents:
-		this.hash64=this.file_in.readLine();
+		//Read comma-delimited data:
+		StringTokenizer full=new StringTokenizer(this.file_in.readLine(), ",");
+		//Splits data:
+		this.IV64=full.nextToken();
+		System.out.println(this.IV64);
+		this.enc64=full.nextToken();
+		System.out.println(this.enc64);
+		this.hash64=full.nextToken();
+		System.out.println(this.hash64);
 	}
 	
 	//Decrypt file contents:
@@ -82,8 +87,6 @@ class DecHelper {
 	
 	//Verify the decrypted contents:
 	public boolean verifyContents() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		//Hash the newly decrypted contents:
-		this.hasher256=MessageDigest.getInstance("SHA-256");
 		byte[] hashed=hasher256.digest(this.dec.getBytes("UTF-8"));
 		String hash=Base64.getEncoder().encodeToString(hashed);
 		//Compare hashes and return result:
@@ -121,5 +124,11 @@ class DecHelper {
 			return true;
 		else
 			return false; //Once again, this should NEVER HAPPEN!
+	}
+	
+	//Function to close all streams:
+	public void finish() throws IOException {
+		this.file_in.close();
+		this.file_out.close();
 	}
 }
