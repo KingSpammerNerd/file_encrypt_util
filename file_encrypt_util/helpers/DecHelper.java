@@ -95,17 +95,13 @@ public class DecHelper {
 	
 	//Function to write and verify the output file (returns true if file is "good", else returns false. Should NEVER return false during normal usage):
 	public boolean writeOutput() throws IOException {
-		//Open output file:
-		File out=new File(this.target_file_name);
-		//Throw exception if file exists. The program should prompt the user at this point:
-		if(out.exists()) throw new IOException("OUT_FILE_EXISTS");
 		//Open the file:
-		this.file_out=new BufferedWriter(new FileWriter(out));
+		this.file_out=new BufferedWriter(new FileWriter(new File(this.target_file_name)));
 		//Write data to the file:
 		this.file_out.write(this.dec);
 		this.file_out.flush();
 		//Re-read data from file:
-		BufferedReader check_reader=new BufferedReader(new FileReader(out));
+		BufferedReader check_reader=new BufferedReader(new FileReader(new File(this.target_file_name)));
 		String temp=null; StringBuilder checc=new StringBuilder();
 		while((temp=check_reader.readLine())!=null) {
 			checc.append(temp);

@@ -100,12 +100,8 @@ public class EncHelper {
 	
 	//Function to write and verify the output file (returns true if file is "good", else returns false. Should NEVER return false during normal usage):
 	public boolean writeOutput() throws IOException {
-		//Open output file:
-		File out=new File(this.target_file_name);
-		//Throw exception if file exists. The program should prompt the user at this point:
-		if(out.exists()) throw new IOException("OUT_FILE_EXISTS");
 		//Open the file:
-		this.file_out=new BufferedWriter(new FileWriter(out));
+		this.file_out=new BufferedWriter(new FileWriter(new File(this.target_file_name)));
 		//Concatenate the data. First the Initialization vector (this.IV64), then the encrypted contents (this.enc64), finally the SHA-256 hash of the encrypted file (this.hashed64):
 		StringBuffer out_builder=new StringBuffer();
 		out_builder.append(this.IV64);
@@ -121,7 +117,7 @@ public class EncHelper {
 		this.file_out.write(target_file_contents);
 		this.file_out.flush();
 		//Re-read data from file:
-		BufferedReader check_reader=new BufferedReader(new FileReader(out));
+		BufferedReader check_reader=new BufferedReader(new FileReader(new File(this.target_file_name)));
 		String check=check_reader.readLine();
 		//Hash re-read data:
 		byte[] posthash=this.hasher256.digest(check.getBytes("UTF-8"));
