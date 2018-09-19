@@ -59,9 +59,23 @@ public class EncUtil {
 						System.out.println("Error: " + filename + " does not exist.");
 						break;
 					}
+					
 					//Get output file name:
 					System.out.print("Enter path to new output file: ");
 					String outfilename=s.nextLine();
+					//Check if output file already exists:
+					File out_checker=new File(outfilename);
+					if(out_checker.exists()) {
+						System.out.print("Warning: " + outfilename + " already exists! Overwrite? [y/N]");
+						char yn=s.nextLine().charAt(0);
+						//If user responds with 'y', delete the file and continue, else break.
+						if(yn=='y' || yn=='Y') {
+							out_checker.delete();
+						} else {
+							break;
+						}
+					}
+					
 					//Get encryption key for file:
 					System.out.print("Enter passcode to encrypt file (8+ chars recommended): ");
 					String epass=s.nextLine();
@@ -119,9 +133,23 @@ public class EncUtil {
 						System.out.println("Error: " + filename + " does not exist.");
 						break;
 					}
+					
 					//Get output file name:
 					System.out.print("Enter path to output file: ");
 					String outfilename=s.nextLine();
+					//Check if output file already exists:
+					File out_checker=new File(outfilename);
+					if(out_checker.exists()) {
+						System.out.print("Warning: " + outfilename + " already exists! Overwrite? [y/N]");
+						char yn=s.nextLine().charAt(0);
+						//If user responds with 'y', delete the file and continue, else break.
+						if(yn=='y' || yn=='Y') {
+							out_checker.delete();
+						} else {
+							break;
+						}
+					}
+					
 					//Get encryption key for file:
 					System.out.print("Enter passcode to decrypt file: ");
 					String dpass=s.nextLine();
