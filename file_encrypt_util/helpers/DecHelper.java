@@ -60,11 +60,8 @@ public class DecHelper {
 		StringTokenizer full=new StringTokenizer(this.file_in.readLine(), ",");
 		//Splits data:
 		this.IV64=full.nextToken();
-		System.out.println(this.IV64);
 		this.enc64=full.nextToken();
-		System.out.println(this.enc64);
 		this.hash64=full.nextToken();
-		System.out.println(this.hash64);
 	}
 	
 	//Decrypt file contents:
