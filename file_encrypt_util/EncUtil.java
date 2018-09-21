@@ -78,7 +78,11 @@ public class EncUtil {
 					
 					//Get encryption key for file:
 					System.out.print("Enter passcode to encrypt file (8+ chars recommended): ");
-					String epass=s.nextLine();
+					Console pin=System.console();
+					String epass=null;
+					StringBuffer p=new StringBuffer();
+					p.append(pin.readPassword());
+					epass=p.toString();
 					
 					//Create EncHelper and read input file:
 					EncHelper e=null;
@@ -152,7 +156,11 @@ public class EncUtil {
 					
 					//Get encryption key for file:
 					System.out.print("Enter passcode to decrypt file: ");
-					String dpass=s.nextLine();
+					Console pin=System.console();
+					String dpass=null;
+					StringBuffer p=new StringBuffer();
+					p.append(pin.readPassword());
+					dpass=p.toString();
 					
 					//Create DecHelper:
 					DecHelper d=null;
