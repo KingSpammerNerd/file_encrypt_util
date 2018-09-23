@@ -1,4 +1,4 @@
-package file_encrypt_util.helpers;
+package file_encrypt_util.helpers.plaintext;
 
 //Helper class to implement file decryption.
 import java.io.*;

@@ -1,6 +1,10 @@
 # file_encrypt_util
 A simple plaintext encryption utility, written in Java
 
+Update notes, Version 1.2:
+
+-Added handling for non-plaintext files.
+
 Update notes, Version 1.1.1:
 
 -No longer displays password input on screen, similar to UNIX login prompts.
