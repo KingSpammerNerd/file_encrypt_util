@@ -1,5 +1,5 @@
 # file_encrypt_util
-A simple plaintext encryption utility, written in Java
+A simple file/plaintext encryption utility, written in Java
 
 Update notes, Version 1.2:
 
