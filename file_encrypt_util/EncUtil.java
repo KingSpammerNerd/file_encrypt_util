@@ -1,5 +1,5 @@
 package file_encrypt_util;
-import file_encrypt_util.helpers.*;
+import file_encrypt_util.helpers.plaintext.*;
 
 //Application to encrypt and decrypt raw files.
 //Encryption is done by:
