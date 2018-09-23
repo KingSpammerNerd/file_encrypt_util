@@ -1,5 +1,4 @@
 package file_encrypt_util;
-import file_encrypt_util.helpers.plaintext.*;
 
 //Application to encrypt and decrypt raw files.
 //Encryption is done by:
@@ -84,11 +83,32 @@ public class EncUtil {
 					p.append(pin.readPassword());
 					epass=p.toString();
 					
-					//Create EncHelper and read input file:
-					EncHelper e=null;
+					//Create Helper and read input file:
+					//Lets user select between: 1. Plaintext, 2. Binary (basically all other files)
+					file_encrypt_util.helpers.Helper e=null;
+					System.out.println("Select the type of file:");
+					System.out.println("1. Binary (default, unbuffered)");
+					System.out.println("2. Plaintext (buffered)");
+					System.out.print("Enter option: ");
+					int type=Integer.parseInt(s.nextLine());
 					try {
-						e=new EncHelper(filename, outfilename, epass);
-						System.out.println("Reading file...");
+						switch(type) {
+							case 1: {
+								e=new file_encrypt_util.helpers.binary.EncHelper(filename, outfilename, epass);
+								System.out.println("Reading as Binary file...");
+								break;
+							}
+							case 2: {
+								e=new file_encrypt_util.helpers.plaintext.EncHelper(filename, outfilename, epass);
+								System.out.println("Reading as Plaintext file...");
+								break;
+							}
+							default: {
+								e=new file_encrypt_util.helpers.binary.EncHelper(filename, outfilename, epass);
+								System.out.println("Invalid option, reading as Binary file...");
+								break;
+							}
+						}
 						e.readInput();
 					} catch(Exception e1) {
 						System.out.println("I/O Error: " + e1.getMessage());
@@ -98,7 +118,12 @@ public class EncUtil {
 					//Get and store input hash:
 					try {
 						System.out.println("Hashing file...");
-						e.hashInput();
+						//Call appropriate hashing method:
+						if(e instanceof file_encrypt_util.helpers.binary.EncHelper) {
+							((file_encrypt_util.helpers.binary.EncHelper)e).hashInput();
+						} else if(e instanceof file_encrypt_util.helpers.plaintext.EncHelper) {
+							((file_encrypt_util.helpers.plaintext.EncHelper)e).hashInput();
+						}
 					} catch(Exception e2) {
 						System.out.println("Error hashing input file: " + e2.getMessage());
 						break;
@@ -107,7 +132,12 @@ public class EncUtil {
 					//Encrypt file:
 					try {
 						System.out.println("Encrypting file...");
-						e.encryptInput();
+						//Call appropriate encryption method:
+						if(e instanceof file_encrypt_util.helpers.binary.EncHelper) {
+							((file_encrypt_util.helpers.binary.EncHelper)e).encryptInput();
+						} else if(e instanceof file_encrypt_util.helpers.plaintext.EncHelper) {
+							((file_encrypt_util.helpers.plaintext.EncHelper)e).encryptInput();
+						}
 					} catch(Exception e3) {
 						System.out.println("Error while encrypting file: " + e3.getMessage());
 						break;
@@ -162,10 +192,32 @@ public class EncUtil {
 					p.append(pin.readPassword());
 					dpass=p.toString();
 					
-					//Create DecHelper:
-					DecHelper d=null;
+					//Create Helper and read input file:
+					//Lets user select between: 1. Plaintext, 2. Binary (basically all other files)
+					file_encrypt_util.helpers.Helper d=null;
+					System.out.println("Select the type of file that was encrypted:");
+					System.out.println("1. Binary (default, unbuffered)");
+					System.out.println("2. Plaintext (buffered)");
+					System.out.print("Enter option: ");
+					int type=Integer.parseInt(s.nextLine());
 					try {
-						d=new DecHelper(filename, outfilename, dpass);
+						switch(type) {
+							case 1: {
+								d=new file_encrypt_util.helpers.binary.DecHelper(filename, outfilename, dpass);
+								System.out.println("Reading as Binary file...");
+								break;
+							}
+							case 2: {
+								d=new file_encrypt_util.helpers.plaintext.DecHelper(filename, outfilename, dpass);
+								System.out.println("Reading as Plaintext file...");
+								break;
+							}
+							default: {
+								d=new file_encrypt_util.helpers.binary.DecHelper(filename, outfilename, dpass);
+								System.out.println("Invalid option, reading as Binary file...");
+								break;
+							}
+						}
 					} catch(Exception e1) {
 						System.out.println("Error: " + e1.getMessage());
 						break;
@@ -183,9 +235,19 @@ public class EncUtil {
 					//Decrypt and verify file contents:
 					try {
 						System.out.println("Decrypting...");
-						d.decryptInput();
+						//Call appropriate decryption method:
+						if(d instanceof file_encrypt_util.helpers.binary.DecHelper) {
+							((file_encrypt_util.helpers.binary.DecHelper)d).decryptInput();
+						} else if(d instanceof file_encrypt_util.helpers.plaintext.DecHelper) {
+							((file_encrypt_util.helpers.plaintext.DecHelper)d).decryptInput();
+						}
 						System.out.println("Verifying...");
-						d.verifyContents();
+						//Call appropriate verification method:
+						if(d instanceof file_encrypt_util.helpers.binary.DecHelper) {
+							((file_encrypt_util.helpers.binary.DecHelper)d).verifyContents();
+						} else if(d instanceof file_encrypt_util.helpers.plaintext.DecHelper) {
+							((file_encrypt_util.helpers.plaintext.DecHelper)d).verifyContents();
+						}
 					} catch(Exception e2) {
 						System.out.println("Error while decrypting: " + e2.getMessage());
 						break;
