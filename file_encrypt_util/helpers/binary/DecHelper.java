@@ -15,7 +15,7 @@ public class DecHelper extends file_encrypt_util.helpers.Helper {
 	//File input streams:
 	private BufferedReader file_in=null;
 	//File output stream:
-	private BufferedWriter file_out=null;
+	private FileOutputStream file_out=null;
 	//Base64 decoder:
 	private Base64.Decoder b64_dec=null;
 	//MessageDigest, for hashing:
@@ -37,7 +37,7 @@ public class DecHelper extends file_encrypt_util.helpers.Helper {
 	private String hash64=null;
 	
 	//Decrypted contents:
-	private String dec=null;
+	private byte[] dec=null;
 	
 	//Constructor, takes the original file name, target file name and the decryption key:
 	public DecHelper(String orig_file_name, String target_file_name, String passkey) throws IOException, NoSuchAlgorithmException, UnsupportedEncodingException {
@@ -78,13 +78,12 @@ public class DecHelper extends file_encrypt_util.helpers.Helper {
 		decrypter.init(Cipher.DECRYPT_MODE, key, IV);
 		//Decode and decrypt contents:
 		byte[] enc=this.b64_dec.decode(this.enc64.getBytes("UTF-8"));
-		byte[] decc=decrypter.doFinal(enc);
-		this.dec=new String(decc, "UTF-8");
+		this.dec=decrypter.doFinal(enc);
 	}
 	
 	//Verify the decrypted contents:
 	public boolean verifyContents() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		byte[] hashed=hasher256.digest(this.dec.getBytes("UTF-8"));
+		byte[] hashed=hasher256.digest(this.dec);
 		String hash=Base64.getEncoder().encodeToString(hashed);
 		//Compare hashes and return result:
 		if(hash.equals(this.hash64))
@@ -96,21 +95,15 @@ public class DecHelper extends file_encrypt_util.helpers.Helper {
 	//Function to write and verify the output file (returns true if file is "good", else returns false. Should NEVER return false during normal usage):
 	public boolean writeOutput() throws IOException {
 		//Open the file:
-		this.file_out=new BufferedWriter(new FileWriter(new File(this.target_file_name)));
+		this.file_out=new FileOutputStream(new File(this.target_file_name));
 		//Write data to the file:
 		this.file_out.write(this.dec);
-		this.file_out.flush();
 		//Re-read data from file:
-		BufferedReader check_reader=new BufferedReader(new FileReader(new File(this.target_file_name)));
-		String temp=null; StringBuilder checc=new StringBuilder();
-		while((temp=check_reader.readLine())!=null) {
-			checc.append(temp);
-			checc.append('\n');
-		}
-		checc.deleteCharAt(checc.length()-1);
-		String check=checc.toString();
+		FileInputStream check_reader=new FileInputStream(new File(this.target_file_name));
+		byte[] checc=new byte[this.dec.length];
+		check_reader.read(checc);
 		//Hash re-read data:
-		byte[] posthash=this.hasher256.digest(check.getBytes("UTF-8"));
+		byte[] posthash=this.hasher256.digest(checc);
 		String posthash64=Base64.getEncoder().encodeToString(posthash);
 		//Check if hashes match:
 		if(this.hash64.equals(posthash64))

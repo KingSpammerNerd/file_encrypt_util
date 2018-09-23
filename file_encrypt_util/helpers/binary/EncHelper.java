@@ -1,5 +1,5 @@
 package file_encrypt_util.helpers.binary;
-//TODO: REWRITE READ/WRITE BITS FOR BINARY
+
 //Helper class to implement file encryption.
 import java.io.*;
 import java.security.*;
@@ -14,7 +14,7 @@ import java.util.*;
 //Encryption helper class:
 public class EncHelper extends file_encrypt_util.helpers.Helper {
 	//File input stream:
-	private BufferedReader file_in=null;
+	private FileInputStream file_in=null;
 	//Encrypted file output streams:
 	private BufferedWriter file_out=null;
 	//Base64 encoded contents of encrypted file:
@@ -36,7 +36,7 @@ public class EncHelper extends file_encrypt_util.helpers.Helper {
 	private String passwd=null;
 	
 	//Original file contents:
-	private String orig_file_contents=null;
+	private byte[] orig_file_contents=null;
 	
 	//Target file contents:
 	private String target_file_contents=null;
@@ -47,8 +47,10 @@ public class EncHelper extends file_encrypt_util.helpers.Helper {
 		this.orig_file_name=orig_file_name;
 		this.target_file_name=target_file_name;
 		//Open input stream:
-		this.file_in=new BufferedReader(new FileReader(orig_file_name));
-		//Initializa MessageDigest:
+		File in=new File(orig_file_name);
+		this.file_in=new FileInputStream(in);
+		this.orig_file_contents=new byte[(int)in.length()];
+		//Initialize MessageDigest:
 		this.hasher256=MessageDigest.getInstance("SHA-256");
 		//Create Base64 encoder:
 		this.b64_enc=Base64.getEncoder();
@@ -58,23 +60,14 @@ public class EncHelper extends file_encrypt_util.helpers.Helper {
 	
 	//Function to read and store input file's contents:
 	public void readInput() throws IOException {
-		//Iteratively read through file, line by line:
-		StringBuffer contents=new StringBuffer();
-		String temp=null;
-		while((temp=file_in.readLine())!=null) {
-			contents.append(temp);
-			contents.append('\n');
-		}
-		//Remove trailing newline:
-		contents.deleteCharAt(contents.length()-1);
-		//Save contents:
-		this.orig_file_contents=contents.toString();
+		//Read file into this.orig_file_contents:
+		file_in.read(this.orig_file_contents);
 	}
 	
 	//Function to hash the file:
 	public void hashInput() throws UnsupportedEncodingException, NoSuchAlgorithmException {
 		//Hash and store:
-		byte[] hash64=this.hasher256.digest(this.orig_file_contents.getBytes("UTF-8"));
+		byte[] hash64=this.hasher256.digest(this.orig_file_contents);
 		this.hashed64=this.b64_enc.encodeToString(hash64);
 	}
 	
@@ -93,7 +86,7 @@ public class EncHelper extends file_encrypt_util.helpers.Helper {
 		//Store Initialization Vector:
 		this.IV64=this.b64_enc.encodeToString(iv);
 		//Encrypt contents:
-		byte[] enc=encrypter.doFinal(this.orig_file_contents.getBytes("UTF-8"));
+		byte[] enc=encrypter.doFinal(this.orig_file_contents);
 		byte[] ence=this.b64_enc.encode(enc);
 		this.enc64=new String(ence, "UTF-8");
 	}
